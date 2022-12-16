@@ -3,6 +3,7 @@ CREATE DATABASE IF NOT EXISTS krautundrueben;
 USE krautundrueben;
 
 
+# Kunden Tabelle erstellen
 CREATE TABLE KUNDE (
     KUNDENNR        INTEGER NOT NULL,
     NACHNAME        VARCHAR(50),
@@ -14,8 +15,9 @@ CREATE TABLE KUNDE (
     ORT             VARCHAR(50),
     TELEFON         VARCHAR(25),
     EMAIL           VARCHAR(50)
-    );
+);
 
+# Zutaten Tabelle erstellen
 CREATE TABLE ZUTAT(
     ZUTATENNR       INTEGER NOT NULL,
     BEZEICHNUNG     VARCHAR(50),
@@ -28,6 +30,7 @@ CREATE TABLE ZUTAT(
     PROTEIN         DECIMAL(10,2)
 );
 
+# Bestellungs Tabelle erstellen
 CREATE TABLE BESTELLUNG (
     BESTELLNR        INTEGER AUTO_INCREMENT NOT NULL,
     KUNDENNR         INTEGER,
@@ -36,12 +39,14 @@ CREATE TABLE BESTELLUNG (
     PRIMARY KEY (BESTELLNR)
 );
 
+# Verbindungs Tabelle zwischen Zutaten und Bestellung erstellen
 CREATE TABLE BESTELLUNGZUTAT (
     BESTELLNR       INTEGER NOT NULL,
     ZUTATENNR       INTEGER,
     MENGE           INTEGER
 );
 
+# Lieferaten Tabelle erstellen
 CREATE TABLE LIEFERANT (
     LIEFERANTENNR   INTEGER NOT NULL,
     LIEFERANTENNAME VARCHAR(50),
@@ -53,11 +58,13 @@ CREATE TABLE LIEFERANT (
     EMAIL           VARCHAR(50)
 );
 
+# Rezept Tabelle erstellen
 CREATE TABLE REZEPT (
     REZEPTNR      INTEGER AUTO_INCREMENT NOT NULL PRIMARY KEY,
     REZEPTNAME    VARCHAR(50)
 );
 
+# Verbindungs Tabelle zwischen Zutaten und Rezepten erstellen
 CREATE TABLE REZEPTZUTAT (
     ZUTATENNR     INTEGER NOT NULL,
     REZEPTNR      INTEGER NOT NULL,
@@ -65,22 +72,26 @@ CREATE TABLE REZEPTZUTAT (
     PRIMARY KEY (ZUTATENNR, REZEPTNR)
 );
 
+# Beschränkungs Tabelle erstellen
 CREATE TABLE BESCHRAENKUNGEN (
     BESCHRAENKUNGS_ID     INTEGER AUTO_INCREMENT NOT NULL PRIMARY KEY,
     BESCHRAENKUNGSNAME    VARCHAR(50)
 );
 
+# Verbindungs Tabelle zwischen Rezepten und Beschränkungen erstellen
 CREATE TABLE BESCHRAENKUNGENREZEPT (
     BESCHRAENKUNGS_ID     INTEGER NOT NULL,
     REZEPTNR              INTEGER NOT NULL,
     PRIMARY KEY (BESCHRAENKUNGS_ID, REZEPTNR)
 );
 
+# Ernährungskategorie Tabelle erstellen
 Create TABLE ERNAEHRUNGSKATEGORIEN (
     ERNAEHRUNGSKATEGORIE_ID     INTEGER AUTO_INCREMENT NOT NULL PRIMARY KEY,
     ERNAEHRUNGSKATEGORIENAME    VARCHAR(50)
 );
 
+# Verbindungs Tabelle zwischen Rezepten und Ernährungskategorien erstellen
 CREATE TABLE ERNAEHRUNGKATREZEPT (
     ERNAEHRUNGSKATEGORIE_ID    INTEGER NOT NULL,
     REZEPTNR                   INTEGER NOT NULL
@@ -120,7 +131,7 @@ ALTER TABLE BESCHRAENKUNGENREZEPT ADD FOREIGN KEY (REZEPTNR) REFERENCES REZEPT (
 
 DELIMITER //
 
-
+# Auswahl aller Zutaten, die bisher keinem Rezept zugeordnet sind
 CREATE PROCEDURE ZutatenOhneRezept()
 BEGIN
     SELECT ZUTAT.BEZEICHNUNG
@@ -129,7 +140,7 @@ BEGIN
 	 WHERE REZEPTZUTAT.ZUTATENNR IS NULL;
 END//
 
-
+# Auswahl aller Rezepte einer bestimmten Ernährungskategorie
 CREATE PROCEDURE RezepteMitErnaehrungskategorie(IN ErnaehrungskategorieName_ VARCHAR(50))
 BEGIN
     SELECT REZEPT.REZEPTNAME
@@ -139,7 +150,7 @@ BEGIN
     WHERE ERNAEHRUNGSKATEGORIEN.ERNAEHRUNGSKATEGORIENAME = ErnaehrungskategorieName_;
 END//
 
-
+# Auswahl aller Rezepte, die weniger als fünf Zutaten enthalten und eine bestimmte Ernährungskategorie erfüllen
 CREATE PROCEDURE RezepteMitWenigerAlsFuenfZutatenUndErneahrungskategorie(IN ErnaehrungskategorieName_ VARCHAR(50))
 BEGIN
     SELECT REZEPT.REZEPTNAME
@@ -157,7 +168,7 @@ BEGIN
     );
 END//
 
-
+# Auswahl aller Zutaten eines Rezeptes nach Rezeptname
 CREATE PROCEDURE ZutatenVonRezept(IN RezeptName_ VARCHAR(50))
 BEGIN
     SELECT ZUTAT.BEZEICHNUNG
@@ -167,7 +178,7 @@ BEGIN
     WHERE REZEPT.REZEPTNAME = RezeptName_;
 END//
 
-
+# Auswahl aller Rezepte, die weniger als fünf Zutaten enthalten
 CREATE PROCEDURE RezepteMitWenigerAlsFuenfZutaten()
 BEGIN
     SELECT REZEPT.REZEPTNAME
@@ -179,8 +190,8 @@ BEGIN
     );
 END//
 
-
-CREATE PROCEDURE DurchschnitlicheNaehrwerteAllerBestellungEinesKunden(IN KundenNR_ INT)
+# Berechnung der durchschnittlichen Nährwerte aller Bestellungen eines Kunden
+CREATE PROCEDURE DurchschnittlicheNaehrwerteAllerBestellungEinesKunden(IN KundenNR_ INT)
 BEGIN
     SELECT KUNDE.KUNDENNR,
         AVG(ZUTAT.KALORIEN*BESTELLUNGZUTAT.MENGE) AS "Durchschnittliche Kalorien",
@@ -194,7 +205,7 @@ BEGIN
     HAVING KUNDE.KUNDENNR = KundenNR_;
 END//
 
-
+# Alle Rezepte, ohne eine bestimmte Beschraenkung
 CREATE PROCEDURE RezepteOhneBeschraenkungen(IN BeschraenkungsName_ VARCHAR(50))
 BEGIN
     SELECT REZEPT.REZEPTNAME
@@ -207,7 +218,7 @@ BEGIN
     ) = 0;
 END//
 
-
+# Auswahl aller Rezepte, die eine bestimmte Kalorienmenge nicht überschreiten
 CREATE PROCEDURE RezepteMitWenigerAlsEinerBestimmtenKalorienMenge(IN Kalorien_ INT)
 BEGIN
     SELECT REZEPT.REZEPTNAME
@@ -218,7 +229,7 @@ BEGIN
     HAVING SUM(REZEPTZUTAT.MENGE * ZUTAT.KALORIEN) <= Kalorien_;
 END//
 
-
+# Auswahl aller Rezepte, die eine gewisse Zutat enthalten
 CREATE PROCEDURE RezepteMitBestimmterZutat(IN Bezeichnung_ VARCHAR(50))
 BEGIN
     SELECT REZEPT.REZEPTNAME
@@ -228,7 +239,7 @@ BEGIN
     WHERE ZUTAT.BEZEICHNUNG = Bezeichnung_;
 END//
 
-
+# Alle Lieferanten, die die Zutaten für ein bestimmtes Rezept liefern
 CREATE PROCEDURE LieferantenAllerZutatenEinesBestimmtenRezeptes(IN RezeptName_ VARCHAR(50))
 BEGIN
     SELECT DISTINCT LIEFERANT.LIEFERANTENNAME
@@ -239,7 +250,7 @@ BEGIN
     WHERE REZEPT.REZEPTNAME = RezeptName_;
 END//
 
-
+# Alle Rezepte inklusive ihrer Nährwerte auflisten
 CREATE PROCEDURE AlleNaehrwerteAllerRezepte()
 BEGIN
     SELECT REZEPT.REZEPTNAME, SUM(ZUTAT.KALORIEN * REZEPTZUTAT.MENGE) AS "Kalorien", SUM(ZUTAT.KOHLENHYDRATE * REZEPTZUTAT.MENGE) AS "Kohlenhydrate", SUM(ZUTAT.PROTEIN * REZEPTZUTAT.MENGE) AS "Protein"

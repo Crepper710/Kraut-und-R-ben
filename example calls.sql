@@ -8,7 +8,7 @@ CALL RezepteMitErnaehrungskategorie("Vegetarisch");
 CALL RezepteMitBestimmterZutat("Mozzarella");
 
 # Berechnung der durchschnittlichen Nährwerte aller Bestellungen eines Kunden
-CALL DurchschnitlicheNaehrwerteAllerBestellungEinesKunden(2002);
+CALL DurchschnittlicheNaehrwerteAllerBestellungEinesKunden(2002);
 
 # Auswahl aller Zutaten, die bisher keinem Rezept zugeordnet sind
 CALL ZutatenOhneRezept();
