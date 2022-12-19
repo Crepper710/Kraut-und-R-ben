@@ -97,6 +97,16 @@ CREATE TABLE ERNAEHRUNGKATREZEPT (
     REZEPTNR                   INTEGER NOT NULL
 );
 
+# Preis Änderungs Tabelle erstellen
+CREATE TABLE PREIS_AENDERUNGEN (
+    ID                  INTEGER NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    ZUTATENNR           INTEGER NOT NULL,
+    ALTER_PREIS         DECIMAL(10,2),
+    NEUER_PREIS         DECIMAL(10,2),
+    VERANTWORTLICHER    VARCHAR(50),
+    ZEITPUNKT           TIMESTAMP
+);
+
 /******************************************************************************/
 /***                              Primary Keys                              ***/
 /******************************************************************************/
@@ -123,6 +133,7 @@ ALTER TABLE ERNAEHRUNGKATREZEPT ADD FOREIGN KEY (REZEPTNR) REFERENCES REZEPT (RE
 ALTER TABLE ERNAEHRUNGKATREZEPT ADD FOREIGN KEY (ERNAEHRUNGSKATEGORIE_ID) REFERENCES ERNAEHRUNGSKATEGORIEN (ERNAEHRUNGSKATEGORIE_ID);
 ALTER TABLE BESCHRAENKUNGENREZEPT ADD FOREIGN KEY (BESCHRAENKUNGS_ID) REFERENCES BESCHRAENKUNGEN (BESCHRAENKUNGS_ID);
 ALTER TABLE BESCHRAENKUNGENREZEPT ADD FOREIGN KEY (REZEPTNR) REFERENCES REZEPT (REZEPTNR);
+ALTER TABLE PREIS_AENDERUNGEN ADD FOREIGN KEY (ZUTATENNR) REFERENCES ZUTAT (ZUTATENNR);
 
 
 /******************************************************************************/
@@ -260,5 +271,33 @@ BEGIN
     GROUP BY REZEPT.REZEPTNR;
 END//
 
+
+DELIMITER ;
+
+/******************************************************************************/
+/***                                 Views                                  ***/
+/******************************************************************************/
+
+CREATE VIEW LIEFERANTEN_UEBERBLICK AS
+SELECT ZUTAT.BEZEICHNUNG, LIEFERANT.LIEFERANTENNAME
+FROM ZUTAT
+INNER JOIN LIEFERANT ON ZUTAT.LIEFERANT = LIEFERANT.LIEFERANTENNR
+ORDER BY LIEFERANT.LIEFERANTENNR;
+
+/******************************************************************************/
+/***                               Triggers                                 ***/
+/******************************************************************************/
+
+DELIMITER //
+
+CREATE TRIGGER PreisAenderungen AFTER
+UPDATE ON ZUTAT
+FOR EACH ROW
+BEGIN
+    IF (OLD.NETTOPREIS != NEW.NETTOPREIS) THEN
+        INSERT INTO PREIS_AENDERUNGEN (ZUTATENNR, ALTER_PREIS, NEUER_PREIS, VERANTWORTLICHER, ZEITPUNKT)
+        VALUES (NEW.ZUTATENNR, OLD.NETTOPREIS, NEW.NETTOPREIS, CURRENT_USER, NOW());
+    END IF;
+END//
 
 DELIMITER ;

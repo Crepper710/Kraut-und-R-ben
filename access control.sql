@@ -49,6 +49,7 @@ REVOKE ALL PRIVILEGES ON *.* FROM lieferantenbetreuung;
 GRANT UPDATE(LIEFERANTENNAME, STRASSE, HAUSNR, PLZ, ORT, TELEFON, EMAIL) ON krautundrueben.LIEFERANT TO lieferantenbetreuung;
 GRANT INSERT ON krautundrueben.LIEFERANT TO lieferantenbetreuung;
 GRANT UPDATE(LIEFERANT), SELECT(ZUTATENNR, BEZEICHNUNG) ON krautundrueben.ZUTAT TO lieferantenbetreuung;
+GRANT SELECT ON krautundrueben.LIEFERANTEN_UEBERBLICK TO lieferantenbetreuung;
 
 # Rezeptentwickler Rolle erstellen
 CREATE ROLE IF NOT EXISTS rezeptentwickler;
@@ -72,13 +73,13 @@ GRANT EXECUTE ON PROCEDURE krautundrueben.ZutatenVonRezept TO rezeptentwickler;
 
 
 # Beispiel für Rollen, nach belieben einkommentieren und bearbeiten
-/*
+
 
 CREATE user if NOT EXISTS thor IDENTIFIED BY "test";
-GRANT rezeptentwickler TO thor;
-SET DEFAULT ROLE rezeptentwickler TO thor;
+GRANT lieferantenbetreuung TO thor;
+SET DEFAULT ROLE lieferantenbetreuung TO thor;
 
-
+/*
 CREATE USER if NOT EXISTS luca IDENTIFIED BY "test";
 GRANT kundenbetreuung TO luca;
 SET DEFAULT ROLE kundenbetreuung TO luca;
